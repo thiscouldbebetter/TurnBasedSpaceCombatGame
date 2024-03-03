@@ -1,0 +1,576 @@
+<html>
+<body>
+
+
+<div id="divUi">
+
+	<h3>Turn-Based Space Chase Game</h3>
+
+	<p>Enter commands to play the game, or "help" for a list of valid commands.</p>
+
+	<textarea
+		id="textareaConsoleOutput"
+		cols="80" rows="20"
+		readonly="true"
+	></textarea>
+	<br />
+
+	<label>Enter a command:</label>
+	<input
+		id="inputConsoleInput"
+	>
+	</input>
+
+	<button onclick="buttonCommandEnter_Clicked();">Enter</button>
+</div>
+
+<script type="text/javascript">
+
+// UI events.
+
+buttonCommandEnter_Clicked()
+{
+	// todo
+}
+
+// Classes.
+
+class CrewMember
+{
+	constructor(name, species, health, order)
+	{
+		this.name = name;
+		this.species = species;
+		this.health = health;
+		this.order = order;
+	}
+
+	clone()
+	{
+		return new CrewMember
+		(
+			this.name,
+			this.species,
+			this.health,
+			this.order.clone()
+		);
+	}
+}
+
+class CrewMemberSkill
+{
+	constructor(type, proficiency)
+	{
+		this.type = type;
+		this.proficiency = proficiency;
+	}
+}
+
+class CrewMemberSkillType
+{
+	constructor(name, use)
+	{
+		this.name = name;
+		this.use = use;
+	}
+
+	static Instances()
+	{
+		if (CrewMemberSkillType._instances == null)
+		{
+			CrewMemberSkillType._instances =
+				new CrewMemberSkillType_Instances();
+		}
+		return CrewMemberSkillType._instances;
+	}
+}
+
+class CrewMemberSkillType_Instances
+{
+	constructor()
+	{
+		var st = (n, u) => new CrewMemberSkillType(n, u);
+
+		this.Engines = st("Engines", null);
+		this.Pilot = st("Pilot", null);
+		this.Repair = st("Repair", null);
+		this.Shield = st("Shield", null);
+		this.Weapons = st("Weapons", null);
+	}
+}
+
+class CrewMemberSpecies
+{
+	constructor(name)
+	{
+		this.name = name;
+	}
+
+	static Instances()
+	{
+		if (CrewMemberSpecies._instances == null)
+		{
+			CrewMemberSpecies._instances =
+				new CrewMemberSpecies_Instances();
+		}
+
+		return CrewMemberSpecies._instances;
+	}
+}
+
+class CrewMemberSpecies_Instances
+{
+	constructor()
+	{
+		this.Human = new CrewMemberSpecies("Human");
+	}
+}
+
+class Command
+{
+	constructor(operation, arguments)
+	{
+		this.operation = operation;
+		this.arguments = arguments;
+	}
+}
+
+class CommandOperation
+{
+	constructor(name, description, perform)
+	{
+		this.name = name;
+		this.description = description;
+		this.perform = perform;
+	}
+
+	static Instances()
+	{
+		if (CommandOperation._instances == null)
+		{
+			CommandOperation._instances =
+				new CommandOperation_Instances();
+		}
+
+		return CommandOperation._instances;
+	}
+}
+
+class CommandOperation_Instances
+{
+	constructor()
+	{
+		var co = (n, d, u) => new CommandOperation(n, d, u);
+
+		this.DeviceTarget = co("target", null);
+		this.HelpShow = co("help", null)
+		this.HyperdriveEngage = co("engage", null);
+		this.MenuItemSelect = co("select", null);
+		this.CrewMemberOrder = co("order", null);
+		this.Wait = co("wait", null);
+
+		this._All =
+		[
+			this.DeviceTarget,
+			this.HelpShow,
+			this.Hyperdrive
+		];
+	}
+
+	
+}
+
+class Device
+{
+	constructor(name, turnsSinceLastUse)
+	{
+		this.name = name;
+		this.turnsSinceLastUse = turnsSinceLastUse;
+	}
+
+	clone()
+	{
+		return new Device
+		(
+			this.name,
+			this.turnsSinceLastUse
+		);
+	}
+}
+
+class DeviceType
+{
+	constructor(name, use)
+	{
+		this.name = name;
+		this.use = use;
+	}
+
+	static Instances()
+	{
+		if (DeviceType._instances == null)
+		{
+			DeviceType._instances =
+				new DeviceType_Instances();
+		}
+
+		return DeviceType._instances;
+	}
+}
+
+class DeviceType_Instances
+{
+	constructor()
+	{
+		this.Laser = new DeviceType("Laster, null);
+		this.MissileLauncher = new DeviceType("Missile Launcher", null);
+	}
+}
+
+class Encounter
+{
+	constructor(place, shipOther)
+	{
+		this.place = place;
+		this.shipOther = shipOther;
+	}
+
+	updateForCommand(command, world, galaxy)
+	{
+		this.place.updateForCommand(command, world, galaxy, this);
+		world.shipPlayer.updateForCommand(command, world, galaxy, this);
+		this.shipOther.updateForCommand(command, world, galaxy, this);
+	}
+
+	updateForTurn(world, galaxy)
+	{
+		this.place.updateForTurn(world, galaxy, this);
+		world.shipPlayer.updateForTurn(world, galaxy, this);
+		this.shipOther.updateForTurn(world, galaxy, this);
+	}
+}
+
+class Galaxy
+{
+	constructor(sectors, links, encounterInitial)
+	{
+		this.sectors = sectors;
+		this.links = links;
+
+		this.encounter = encounterInitial;
+	}
+
+	static random()
+	{
+		var sectors = [];
+
+		var links = [];
+
+		var encounter = new Encounter
+		(
+			// todo
+		);
+
+		var galaxy = new Galaxy(sectors, links, encounter);
+
+		return galaxy;
+	}
+
+	updateForCommand(command, world)
+	{
+		this.encounter.updateForCommand(command, world, this);
+	}
+
+	updateForTurn(world)
+	{
+		this.encounter.updateForTurn(world, this);
+	}
+}
+
+class GalaxySectorLink
+{
+	constructor(sectorFromName, sectorToName)
+	{
+		this.sectorFromName = sectorFromName;
+		this.sectorToName = sectorToName;
+	}
+}
+
+class MenuOption
+{
+	constructor(text, select)
+	{
+		this.text = text;
+		this.select = select;
+	}
+}
+
+class MenuPrompt
+{
+	constructor(text, options)
+	{
+		this.text = text;
+		this.options = options;		
+	}
+}
+
+class Place
+{
+	constructor(name, environment, posInSector)
+	{
+		this.name = name;
+		this.environment = environment;
+		this.posInSector = posInSector;
+	}
+}
+
+class PlaceEnvironment
+{
+	constructor
+	(
+		name,
+		effectOnArrival,
+		effectPerTurn
+	)
+	{
+		this.name = name;
+		this.description = description;
+		this.effectOnArrival = effectOnArrival;
+		this.effectPerTurn = effectPerTurn;
+	}
+
+	static Instances()
+	{
+		if (PlaceEnvironment._instances == null)
+		{
+			PlaceEnvironment._instances =
+				new PlaceEnvironment_Instances();
+		}
+
+		return PlaceEnvironment._instances;
+	}
+}
+
+class PlaceEnvironment_Instances
+{
+	constructor()
+	{
+		this.Default = new PlaceEnvironment("Default", null, null);
+	}
+}
+
+class Sector
+{
+	constructor(name, sectorType, places, links)
+	{
+		this.name = name;
+		this.sectorType = sectorType;
+		this.places = places;
+		this.links = links;
+	}
+}
+
+class SectorPlaceLink
+{
+	constructor(placesLinkedNames)
+	{
+		this.placesLinkedNames = placesLinkedNames;
+	}
+}
+
+class Ship
+{
+	constructor
+	(
+		name,
+		shipType,
+		roomLayout,
+		devices,
+		crewMembers
+	)
+	{
+		this.name = name;
+		this.shipType = shipType;
+		this.roomLayout = roomLayout;
+		this.devices = devices;
+		this.crewMembers = crewMembers;
+	}
+
+	static random()
+	{
+		var shipType = ShipType.Instances().Default;
+
+		var roomLayout = shipType.roomLayoutDefault.clone();
+
+		var devices = shipType.devicesDefault.map(x => x.clone() );
+
+		var crewMembers = shipType.crewMembersDefault.map(x => x.clone() );
+
+		var ship = new Ship
+		(
+			"ShipRandom",
+			shipType,
+			roomLayout,
+			devices,
+			crewMembers			
+		);
+
+		return ship;
+	}
+
+	updateForCommand(command, world, galaxy, encounter)
+	{
+		this.roomLayout.updateForCommand
+		(
+			command, world, galaxy, encounter, this
+		);
+
+		this.devices.forEach
+		(
+			x => x.updateForCommand(command, world, galaxy, encounter, this)
+		);
+
+		this.crewMembers.forEach
+		(
+			x => x.updateForCommand(command, world, galaxy, encounter, this)
+		);
+
+	}
+
+	updateForTurn(world, galaxy, encounter)
+	{
+		this.roomLayout.updateForTurn
+		(
+			world, galaxy, encounter, this
+		);
+
+		this.devices.forEach
+		(
+			x => updateForTurn(world, galaxy, encounter, this)
+		);
+
+		this.crewMembers.forEach
+		(
+			x => updateForTurn(world, galaxy, encounter, this)
+		);
+	}
+
+}
+
+class ShipRoom
+{
+	constructor
+	(
+		name,
+		type,
+		functionalIntegrity,
+		hullIntegrity,
+		oxygenFraction
+	)
+	{
+		this.name = name;
+		this.type = type;
+		this.integrity = integrity;
+		this.hullIntegrity = hullIntegrity;
+		this.oxygenFraction = oxygenFraction;
+	}
+}
+
+class ShipRoomLayout
+{
+	constructor(rooms, links)
+	{
+		this.rooms = rooms;
+		this.links = links;
+	}
+
+	updateForCommand(command, world, galaxy, encounter, ship)
+	{
+		// todo
+	}
+
+	updateForTurn(world, galaxy, encounter, ship)
+	{
+		// todo
+	}
+}
+
+class ShipRoomLink
+{
+	constructor(roomsConnectedNames, doorIsOpen)
+	{
+		this.roomsConnectedNames = roomsConnectedNames;
+		this.doorIsOpen = doorIsOpen;
+	}
+}
+
+class ShipRoomType
+{
+	constructor(name, updateForTurn)
+	{
+		this.name = name;
+		this.updateForTurn = updateForTurn;
+	}
+
+	static Instances()
+	{
+		if (ShipRoomType._instances == null)
+		{
+			ShipRoomType._instances =
+				new ShipRoomType_Instances();
+		}
+
+		return ShipRoomType._instances;
+	}
+}
+
+class TextConsole
+{
+	constructor()
+	{
+		// todo
+	}
+}
+
+class World
+{
+	constructor(name, textConsole, shipPlayer, galaxy)
+	{
+		this.name = name;
+		this.textConsole = textConsole;
+		this.shipPlayer = shipPlayer;
+		this.galaxy = galaxy;
+	}
+
+	static random()
+	{
+		var textConsole = new TextConsole();
+
+		var shipPlayer = Ship.random();
+
+		var galaxy = Galaxy.random();
+
+		var world = new World
+		(
+			"WorldRandom",
+			textConsole,
+			shipPlayer,
+			galaxy
+		);
+	}
+
+	updateForCommand(command)
+	{
+		this.galaxy.updateForCommand(this);
+	}
+
+	updateForTurn()
+	{
+		this.galaxy.updateForTurn(this);
+	}
+}
+
+</script>
+
+</body>
+</html>
